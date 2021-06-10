@@ -1,5 +1,5 @@
-#pragma once
-#include "doctest.h"
+##pragma once
+
 #include "Validator.h"
 #include "StringUtils.h"
 #include "PersonalInformation.h"
@@ -7,6 +7,10 @@
 #include "Admin.h"
 #include "Client.h"
 #include "DateTIme.h"
+#include "doctest.h"
+#include "Admin.h"
+#include "Balance.h"
+#include "Card.h"
 TEST_CASE("Validator ValidEGN") {
 	string test1 = "0123456789";
 	string test2 = "asdasll123";
@@ -79,8 +83,68 @@ TEST_CASE("Check String Filling") {
 	string sentance = "heelo i am programmer  hello!";
 	string result = StringUtils::FillStringSpaces(sentance);
 	string result1 = StringUtils::UnFillStringSpaces(result);
-	
+
 	CHECK(result == "heelo$i$am$programmer$$hello!");
 	CHECK(result1 == sentance);
 }
+TEST_CASE("Admin constructor matching password for admin") {
+	Admin admin;
+	string password = "admin";
+	bool valid = BCrypt::validatePassword(password, admin.getHashedPassword());
 
+	CHECK(valid == true);
+}
+TEST_CASE("Check read Write Balance") {
+	Balance one ("1234567890",10,10,10);
+	ofstream out("test");
+	out << one;
+	out.close();
+	ifstream in("test");
+	Balance two(in);
+	in.close();
+	CHECK(two.getBalanceID() == one.getBalanceID());
+}
+TEST_CASE("Balance constructor") {
+	//Format id+"BGMYBANK" +EGNLAST4 +CNT
+	Balance one("1234567890", 10, 10, 10);
+	string result = "10BGMYBANK789010";
+	CHECK(one.getBalanceID() == result);
+}
+TEST_CASE("Card constructor") {
+	Card one("0123456789", 10, "0000", 5);
+	string result = "5BG678910";
+	CHECK(one.getID() == result);
+}
+TEST_CASE("Card read-write and ==") {
+	Card one("0123456789", 10, "0000", 5);
+	ofstream out("test");
+	out << one;
+	out.close();
+	ifstream in("test");
+	Card two(in);
+	in.close();
+	CHECK(one.getAssociatedBalanceId() == two.getAssociatedBalanceId());
+	CHECK(one.getOwner_id() == two.getOwner_id());
+}
+TEST_CASE("Client read write ==") {
+	DateTime ago(2001, 10, 12);
+	Client one("username", "passwor1", "0123456789", "me", "you", "me", "home", "0896217438", ago);
+	ofstream out("file");
+	out << one;
+	out.close();
+
+	ifstream in("file");
+	Client two(in);
+	in.close();
+	CHECK(one.getEGN() == two.getEGN());
+	CHECK(one.getId() == two.getId());
+	
+}
+TEST_CASE("Fillings strings") {
+	string one = "1 1 1 1 1 1";
+	string two = StringUtils::FillStringSpaces(one);
+	string two_result = "1$1$1$1$1$1";
+	CHECK(two_result == two);
+	string one_result = StringUtils::UnFillStringSpaces(two);
+	CHECK(one_result == one);
+}
